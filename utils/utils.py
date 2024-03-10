@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import threading
 
 def load_parameter_list():
     #Loading list of parameters
@@ -61,10 +62,10 @@ def read_indexes(file_path):
     
     return read_data
 
-def load_data(idx_list, small = False, decode = False):
+def load_data(idx_list, small = False, debug = False):
     data = []
     for idx in idx_list:
-        if decode: print(idx)
+        if debug: print(idx)
         if small:
             data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
             data_matrix = data_matrix[::10]
@@ -73,3 +74,56 @@ def load_data(idx_list, small = False, decode = False):
         data.append(data_matrix)
         
     return data
+
+def load_data_thread(idx_list, results, small=False, debug=False):
+    for idx in idx_list:
+        if debug:
+            print(idx)
+        if small:
+            data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
+            data_matrix = data_matrix[::10]
+        else:
+            data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
+        results.append(data_matrix)
+
+def load_data_multithreaded(idx_list, small=False, debug=False):
+    num_threads = 8  
+    chunk_size = (len(idx_list) + num_threads - 1) // num_threads 
+    threads = []
+    results = []
+
+    for i in range(0, len(idx_list), chunk_size):
+        chunk = idx_list[i:i + chunk_size]
+        thread = threading.Thread(target=load_data_thread, args=(chunk, results, small, debug))
+        thread.start()
+        threads.append(thread)
+
+    for thread in threads:
+        thread.join()
+
+    return results
+
+
+def plot_metrics(history, metric_name):
+    plt.plot(history.history[metric_name])
+    plt.plot(history.history[f'val_{metric_name}'])
+    plt.title(metric_name.capitalize())
+    plt.ylabel(metric_name.upper())
+    plt.xlabel('Epoch')
+    plt.legend(['Train', 'Validation'], loc='upper right')
+    plt.show()
+
+# Model evaluation
+def model_evaluation(model, X_test, y_test, random_samples = 5):
+    loss, mae = model.evaluate(X_test, y_test)
+    print('Test mse:', loss)
+    print('Test mae:', mae)
+    random_indices = np.random.choice(len(y_test), size=random_samples, replace=False)
+    test_samples = X_test[random_indices]
+    predictions = model.predict(test_samples)
+    print('\n\nRandom prediction examples')
+    print('Parameters:\tcx\tcy\ta\tb\ttheta\te1\te2')
+    for i in range(len(predictions)):
+        print('------------')
+        print('real:\t\t', '\t'.join(f'{val:.4f}' for val in y_test.iloc[random_indices[i]]))
+        print('prediction:\t', '\t'.join(f'{val:.4f}' for val in predictions[i]))
