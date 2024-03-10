@@ -61,10 +61,15 @@ def read_indexes(file_path):
     
     return read_data
 
-def load_data(idx_list):
+def load_data(idx_list, small = False, decode = False):
     data = []
     for idx in idx_list:
-        data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
+        if decode: print(idx)
+        if small:
+            data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
+            data_matrix = data_matrix[::10]
+        else:
+            data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
         data.append(data_matrix)
         
     return data
