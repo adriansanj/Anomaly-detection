@@ -21,12 +21,12 @@ def load_parameter_list():
 def visualize(idx_list, parameters, cols = 2):
     
     file_paths = [f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt' for idx in idx_list]
-    params = [parameters[idx[0]-1] for idx in idx_list]  #CHANGE AND ADD PARAMETER VISUALIZATION
+    
     
     n_rows = len(idx_list)// cols
     if len(idx_list)%cols > 0:
         n_rows += 1
-    fig, axs = plt.subplots(n_rows, cols, figsize = (cols*5,n_rows*5))
+    fig, axs = plt.subplots(n_rows, cols, figsize = (cols*9,n_rows*9))
     
     axes = axs.flatten()
 
@@ -37,7 +37,8 @@ def visualize(idx_list, parameters, cols = 2):
             file_path = file_paths[i]
             data_matrix = np.loadtxt(file_path)
             ax.imshow(data_matrix, cmap='viridis', aspect='auto')
-            ax.set_title(f'Case {idx_list[i][0]}_{idx_list[i][1]}')
+            params = parameters[parameters['data_index'] == (idx_list[i][0], idx_list[i][1])]
+            ax.set_title(f'Case {idx_list[i][0]}_{idx_list[i][1]}\n {params}')
         
     
     plt.tight_layout()
@@ -87,6 +88,7 @@ def load_data_thread(idx_list, results, small=False, debug=False):
         results.append(data_matrix)
 
 def load_data_multithreaded(idx_list, small=False, debug=False):
+    #NOT WORKING
     num_threads = 8  
     chunk_size = (len(idx_list) + num_threads - 1) // num_threads 
     threads = []
@@ -113,11 +115,10 @@ def plot_metrics(history, metric_name):
     plt.legend(['Train', 'Validation'], loc='upper right')
     plt.show()
 
-# Model evaluation
 def model_evaluation(model, X_test, y_test, random_samples = 5):
-    loss, mae = model.evaluate(X_test, y_test)
-    print('Test mse:', loss)
-    print('Test mae:', mae)
+    metrics = model.evaluate(X_test, y_test)
+    print('Test mae:', metrics[1])
+    print('Test mse:', metrics[2])
     random_indices = np.random.choice(len(y_test), size=random_samples, replace=False)
     test_samples = X_test[random_indices]
     predictions = model.predict(test_samples)
@@ -125,5 +126,5 @@ def model_evaluation(model, X_test, y_test, random_samples = 5):
     print('Parameters:\tcx\tcy\ta\tb\ttheta\te1\te2')
     for i in range(len(predictions)):
         print('------------')
-        print('real:\t\t', '\t'.join(f'{val:.4f}' for val in y_test.iloc[random_indices[i]]))
-        print('prediction:\t', '\t'.join(f'{val:.4f}' for val in predictions[i]))
+        print('real:\t\t', '\t'.join(f'{val:.3f}' for val in y_test.iloc[random_indices[i]]))
+        print('prediction:\t', '\t'.join(f'{val:.3f}' for val in predictions[i]))
