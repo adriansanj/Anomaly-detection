@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import threading
 
+
 def load_parameter_list():
     #Loading list of parameters
     parameters = []
@@ -85,11 +86,11 @@ def load_data_thread(idx_list, results, small=False, debug=False):
             data_matrix = data_matrix[::10]
         else:
             data_matrix = np.loadtxt(f'./datos_tfg/datos_tfg/tfg_datos_{idx[0]}_{idx[1]}.txt')
-        results.append(data_matrix)
+        results.append((idx,data_matrix))
 
-def load_data_multithreaded(idx_list, small=False, debug=False):
+def load_data_multithreaded(idx_list, threads_n, small=False, debug=False):
     #NOT WORKING
-    num_threads = 8  
+    num_threads = threads_n  
     chunk_size = (len(idx_list) + num_threads - 1) // num_threads 
     threads = []
     results = []
@@ -103,7 +104,9 @@ def load_data_multithreaded(idx_list, small=False, debug=False):
     for thread in threads:
         thread.join()
 
-    return results
+    ordered_results = sorted(results, key=lambda x: (x[0][0], x[0][1]))
+    cleaned_results  = [tupl[1] for tupl in ordered_results]
+    return cleaned_results
 
 
 def plot_metrics(history, metric_name):
