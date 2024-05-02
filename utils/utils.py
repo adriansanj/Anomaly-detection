@@ -130,12 +130,15 @@ def load_data_multithreaded(idx_list, threads_n, small=False, debug=False):
 
 
 def plot_metrics(history, metric_name):
-    plt.plot(history.history[metric_name])
-    plt.plot(history.history[f'val_{metric_name}'])
+    plt.plot(history.history[metric_name], color='navy')
+    plt.plot(history.history[f'val_{metric_name}'], color='red')
     plt.title(metric_name.capitalize())
     plt.ylabel(metric_name.upper())
     plt.xlabel('Epoch')
     plt.legend(['Train', 'Validation'], loc='upper right')
+    plt.grid(True)  # Add grid
+    plt.ylim(bottom=0)  # Set lower limit of y-axis to 0
+    plt.ylim(top=1.5)  # Set upper limit of y-axis to 1
     plt.show()
 
 def model_evaluation(model, X_test, y_test, random_samples = 5):
