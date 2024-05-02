@@ -39,11 +39,31 @@ def visualize(idx_list, parameters, cols = 2):
             data_matrix = np.loadtxt(file_path)
             ax.imshow(data_matrix, cmap='viridis', aspect='auto')
             params = parameters[parameters['data_index'] == (idx_list[i][0], idx_list[i][1])]
-            ax.set_title(f'Case {idx_list[i][0]}_{idx_list[i][1]}\n {params}')
+            params_str = '\n'.join([f'{col}: {params.iloc[0][col]}' for col in params.columns[:-1]])
+            ax.set_title(f'Case {idx_list[i][0]}_{idx_list[i][1]}\n{params_str}')
         
     
     plt.tight_layout()
     plt.show()
+
+def visualize_parameter_distributions(df_params, y_limit):
+  fig, axes = plt.subplots(2, 4, figsize=(12, 8))
+
+  axes = axes.flatten()
+
+  custom_x_ranges = [(-3.2,4.4), (0.5,7), (0,4.1),(0,2.5), (-1,1.5), (0,11.1),(0,12.6)]
+  for i, col in enumerate(df_params.columns[:-1]):
+      sns.histplot(df_params[col], ax=axes[i])
+      axes[i].set_xlabel(f'{df_params.columns[i]} values')
+      axes[i].set_ylabel(f'Total count') 
+      axes[i].set_xlim(custom_x_ranges[i][0], custom_x_ranges[i][1])
+      axes[i].set_ylim(0, y_limit) 
+      axes[i].grid(True)
+      #axes[i].set_title(col)
+
+  axes[-1].axis('off')
+  plt.tight_layout()
+  plt.show()
 
 def save_indexes(idx_list, file_path):
     with open(file_path, 'w') as file:
@@ -120,8 +140,10 @@ def plot_metrics(history, metric_name):
 
 def model_evaluation(model, X_test, y_test, random_samples = 5):
     metrics = model.evaluate(X_test, y_test)
-    print('Test mae:', metrics[1])
-    print('Test mse:', metrics[2])
+    print('Test mse:', metrics[0])
+    print('Test rmse:', metrics[1])
+    print('Test mae:', metrics[2])
+    print('Test r2score:', metrics[3])
     random_indices = np.random.choice(len(y_test), size=random_samples, replace=False)
     test_samples = X_test[random_indices]
     predictions = model.predict(test_samples)
