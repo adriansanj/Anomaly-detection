@@ -118,7 +118,6 @@ def load_data_thread(idx_list, results, small=False, debug=False):
         results.append((idx,data_matrix))
 
 def load_data_multithreaded(idx_list, threads_n, small=False, debug=False):
-    #NOT WORKING
     num_threads = threads_n  
     chunk_size = (len(idx_list) + num_threads - 1) // num_threads 
     threads = []
